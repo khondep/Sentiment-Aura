@@ -1,0 +1,84 @@
+/* src/components/Controls.css */
+.controls-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  .record-button {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    background: radial-gradient(circle at center,
+      rgba(255, 100, 100, 0.8) 0%,
+      rgba(255, 50, 50, 0.6) 100%);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+  
+  .record-button:hover {
+    transform: scale(1.05);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 
+      0 0 30px rgba(255, 100, 100, 0.5),
+      inset 0 0 20px rgba(255, 255, 255, 0.1);
+  }
+  
+  .record-button.recording {
+    background: radial-gradient(circle at center,
+      rgba(255, 50, 50, 1) 0%,
+      rgba(200, 0, 0, 0.8) 100%);
+    animation: recordPulse 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes recordPulse {
+    0%, 100% {
+      box-shadow: 
+        0 0 30px rgba(255, 50, 50, 0.8),
+        inset 0 0 20px rgba(255, 255, 255, 0.2);
+    }
+    50% {
+      box-shadow: 
+        0 0 50px rgba(255, 50, 50, 1),
+        inset 0 0 30px rgba(255, 255, 255, 0.3);
+    }
+  }
+  
+  .record-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+  }
+  
+  .record-button.recording .record-icon {
+    border-radius: 4px;
+    width: 24px;
+    height: 24px;
+  }
+  
+  .status-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border-radius: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }

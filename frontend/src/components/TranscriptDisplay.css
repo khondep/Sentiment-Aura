@@ -1,0 +1,192 @@
+/* frontend/src/components/TranscriptDisplay.css */
+.transcript-container {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg,
+      rgba(0, 0, 0, 0.4) 0%,
+      rgba(0, 0, 0, 0.2) 100%);
+    backdrop-filter: blur(40px) saturate(150%);
+    -webkit-backdrop-filter: blur(40px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 25px 30px;
+    box-shadow: 
+      0 20px 60px rgba(0, 0, 0, 0.4),
+      0 0 100px rgba(0, 100, 200, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+  
+  .transcript-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 25px 70px rgba(0, 0, 0, 0.5),
+      0 0 120px rgba(0, 100, 200, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  
+  .transcript-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+  }
+  
+  .transcript-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  
+  .transcript-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .listening-indicator {
+    display: flex;
+    gap: 2px;
+    align-items: flex-end;
+    height: 16px;
+  }
+  
+  .listening-dot {
+    width: 3px;
+    background: linear-gradient(to top,
+      rgba(0, 255, 136, 0.8),
+      rgba(0, 255, 136, 0.3));
+    border-radius: 3px;
+    animation: wave 1s ease-in-out infinite;
+  }
+  
+  .listening-dot:nth-child(1) {
+    height: 8px;
+    animation-delay: 0s;
+  }
+  
+  .listening-dot:nth-child(2) {
+    height: 12px;
+    animation-delay: 0.15s;
+  }
+  
+  .listening-dot:nth-child(3) {
+    height: 8px;
+    animation-delay: 0.3s;
+  }
+  
+  @keyframes wave {
+    0%, 100% {
+      transform: scaleY(0.5);
+      opacity: 0.5;
+    }
+    50% {
+      transform: scaleY(1);
+      opacity: 1;
+    }
+  }
+  
+  .transcript-content {
+    overflow-y: auto;
+    height: calc(100% - 50px);
+    padding-right: 10px;
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      black 15px,
+      black calc(100% - 15px),
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      black 15px,
+      black calc(100% - 15px),
+      transparent 100%
+    );
+  }
+  
+  /* Beautiful scrollbar */
+  .transcript-content::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .transcript-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 3px;
+  }
+  
+  .transcript-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      to bottom,
+      rgba(100, 200, 255, 0.3),
+      rgba(150, 100, 255, 0.3)
+    );
+    border-radius: 3px;
+    transition: all 0.3s ease;
+  }
+  
+  .transcript-content::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+      to bottom,
+      rgba(100, 200, 255, 0.5),
+      rgba(150, 100, 255, 0.5)
+    );
+  }
+  
+  .transcript-text {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 14px;
+    line-height: 1.7;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    animation: fadeInText 0.5s ease;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border-left: 2px solid rgba(100, 200, 255, 0.3);
+    transition: all 0.3s ease;
+  }
+  
+  .transcript-text:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-left-color: rgba(100, 200, 255, 0.6);
+    transform: translateX(5px);
+  }
+  
+  @keyframes fadeInText {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .transcript-empty {
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 13px;
+    font-style: italic;
+    text-align: center;
+    padding: 40px 20px;
+    animation: fadeIn 0.5s ease;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }

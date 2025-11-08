@@ -33,40 +33,45 @@ const AuraVisualization = ({ sentiment, keywords }) => {
     const animate = () => {
       timeRef.current += 0.005;
       
-      // Sentiment-based color palette
-      const sentimentValue = sentiment?.score || 0;
-      const sentimentType = sentiment?.type || 'neutral';
+      // Handle both old format (object) and new format (string)
+      let sentimentValue = 0.5;
+      let sentimentType = 'neutral';
       
+      if (typeof sentiment === 'string') {
+        sentimentType = sentiment;
+        // Assign default intensity values for string format
+        sentimentValue = sentimentType === 'positive' ? 0.7 : 
+                        sentimentType === 'negative' ? 0.7 : 0.5;
+      } else if (sentiment && typeof sentiment === 'object') {
+        sentimentValue = sentiment.score || 0.5;
+        sentimentType = sentiment.type || 'neutral';
+      }
+      
+      // Determine particle colors based on sentiment
       let baseHue, saturation, lightness;
       
       if (sentimentType === 'positive') {
-        baseHue = 180 + sentimentValue * 40; // Cyan to Green
+        // Blue tones for positive (matching the background)
+        baseHue = 200 + sentimentValue * 20; // Blue range
         saturation = 70 + sentimentValue * 20;
-        lightness = 50;
+        lightness = 60;
       } else if (sentimentType === 'negative') {
-        baseHue = 0 + (1 - sentimentValue) * 40; // Red to Orange
+        // Warm/red tones for negative (matching the background)
+        baseHue = 0 + sentimentValue * 30; // Red to orange range
         saturation = 80 + sentimentValue * 10;
-        lightness = 45;
-      } else {
-        baseHue = 260; // Purple
-        saturation = 50;
         lightness = 55;
+      } else {
+        // Purple tones for neutral (matching the background)
+        baseHue = 280; // Purple
+        saturation = 60;
+        lightness = 60;
       }
 
-      // Create gradient background
-      const gradient = ctx.createRadialGradient(
-        canvas.width / 2, canvas.height / 2, 0,
-        canvas.width / 2, canvas.height / 2, canvas.width * 0.7
-      );
-      gradient.addColorStop(0, `hsl(${baseHue}, ${saturation}%, ${lightness - 20}%)`);
-      gradient.addColorStop(0.5, `hsl(${baseHue + 20}, ${saturation - 10}%, ${lightness - 30}%)`);
-      gradient.addColorStop(1, `hsl(${baseHue - 20}, ${saturation - 20}%, ${lightness - 40}%)`);
-
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Add subtle overlay
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      // CRITICAL: Clear the canvas to make it transparent
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Optional: Add very subtle overlay for depth (mostly transparent)
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const noise = noiseRef.current;
@@ -94,29 +99,35 @@ const AuraVisualization = ({ sentiment, keywords }) => {
         if (particle.y < 0) particle.y = canvas.height;
         if (particle.y > canvas.height) particle.y = 0;
         
-        // Draw particle trail
-        const alpha = 0.6 + noiseVal * 0.4;
+        // Draw particle trail with enhanced visibility
+        const alpha = 0.7 + noiseVal * 0.3;
         const size = 2 + sentimentValue * 3;
         
+        // Particle glow effect
+        ctx.shadowBlur = 20 + sentimentValue * 15;
+        ctx.shadowColor = `hsl(${baseHue}, ${saturation}%, ${lightness}%)`;
+        
+        // Draw main particle
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${baseHue + noiseVal * 60}, ${saturation + 20}%, ${lightness + 20}%, ${alpha * 0.4})`;
+        ctx.fillStyle = `hsla(${baseHue + noiseVal * 40}, ${saturation + 20}%, ${lightness + 10}%, ${alpha * 0.6})`;
         ctx.fill();
         
-        // Glow effect
-        ctx.shadowBlur = 15 + sentimentValue * 10;
-        ctx.shadowColor = `hsl(${baseHue}, ${saturation}%, ${lightness}%)`;
+        // Inner bright core
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, size * 0.5, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${baseHue + 40}, 100%, 70%, ${alpha})`;
+        ctx.fillStyle = `hsla(${baseHue + 20}, 100%, 80%, ${alpha})`;
         ctx.fill();
+        
         ctx.shadowBlur = 0;
       });
 
-      // Draw flowing lines based on noise field
+      // Draw flowing lines based on noise field (enhanced for visibility)
       if (keywords && keywords.length > 0) {
-        ctx.strokeStyle = `hsla(${baseHue + 30}, 70%, 60%, 0.15)`;
+        ctx.strokeStyle = `hsla(${baseHue + 30}, 80%, 70%, 0.25)`;
         ctx.lineWidth = 2;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = `hsl(${baseHue}, ${saturation}%, ${lightness}%)`;
         
         for (let i = 0; i < 5; i++) {
           ctx.beginPath();
@@ -128,6 +139,22 @@ const AuraVisualization = ({ sentiment, keywords }) => {
           }
           ctx.stroke();
         }
+        
+        ctx.shadowBlur = 0;
+      }
+
+      // Add subtle energy bursts at random positions
+      if (Math.random() < 0.02 && sentimentValue > 0.5) {
+        const burstX = Math.random() * canvas.width;
+        const burstY = Math.random() * canvas.height;
+        const burstGradient = ctx.createRadialGradient(
+          burstX, burstY, 0,
+          burstX, burstY, 50
+        );
+        burstGradient.addColorStop(0, `hsla(${baseHue}, 100%, 70%, 0.4)`);
+        burstGradient.addColorStop(1, `hsla(${baseHue}, 100%, 70%, 0)`);
+        ctx.fillStyle = burstGradient;
+        ctx.fillRect(burstX - 50, burstY - 50, 100, 100);
       }
 
       animationRef.current = requestAnimationFrame(animate);
@@ -154,6 +181,16 @@ const AuraVisualization = ({ sentiment, keywords }) => {
     <canvas
       ref={canvasRef}
       id="aura-canvas"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 1,
+        background: 'transparent'
+      }}
     />
   );
 };

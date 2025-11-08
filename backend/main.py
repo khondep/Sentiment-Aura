@@ -3,18 +3,74 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 import os
+import sys
+from pathlib import Path
 from dotenv import load_dotenv
 import json
 
-# Load environment variables
-load_dotenv()
+# Load .env file from the root directory (parent of backend folder)
+root_dir = Path(__file__).parent.parent
+env_path = root_dir / '.env'
+
+# Try to load from root, fallback to current directory if not found
+if env_path.exists():
+    load_dotenv(env_path)
+    print(f"✅ Loaded .env from: {env_path}")
+else:
+    load_dotenv()  # Try current directory
+    print(f"⚠️ .env not found in root, trying current directory")
+
+# Configuration class to organize all environment variables
+class Config:
+    # Backend specific
+    BACKEND_API_KEY = os.getenv('BACKEND_API_KEY')
+    DATABASE_URL = os.getenv('DATABASE_URL')
+    SECRET_KEY = os.getenv('SECRET_KEY')
+    BACKEND_PORT = int(os.getenv('BACKEND_PORT', 8000))
+    
+    # AI Provider Configuration
+    AI_PROVIDER = os.getenv('AI_PROVIDER', 'openai').lower()
+    
+    # API Keys for different providers
+    # Backend can read both VITE_ prefixed (for frontend sharing) and non-prefixed versions
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY') or os.getenv('VITE_OPENAI_API_KEY')
+    ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY') or os.getenv('VITE_ANTHROPIC_API_KEY')
+    GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY') or os.getenv('VITE_GOOGLE_API_KEY')
+    
+    # Frontend URLs (from VITE_ variables)
+    FRONTEND_URL = os.getenv('VITE_API_BASE_URL', 'http://localhost:5173')
+    WEBSOCKET_URL = os.getenv('VITE_WEBSOCKET_URL', 'ws://localhost:8000')
+    
+    # Shared configuration
+    NODE_ENV = os.getenv('NODE_ENV', 'development')
+    DEBUG = os.getenv('DEBUG', 'false').lower() == 'true'
+
+# Print configuration info on startup (only in development)
+if Config.NODE_ENV == 'development':
+    print(f"🚀 Starting Sentiment Aura API")
+    print(f"📁 Environment: {Config.NODE_ENV}")
+    print(f"🤖 AI Provider: {Config.AI_PROVIDER}")
+    print(f"🔑 OpenAI Key configured: {bool(Config.OPENAI_API_KEY)}")
+    print(f"🔑 Anthropic Key configured: {bool(Config.ANTHROPIC_API_KEY)}")
+    print(f"🔑 Google Key configured: {bool(Config.GOOGLE_API_KEY)}")
+    print(f"🐛 Debug mode: {Config.DEBUG}")
 
 app = FastAPI(title="Sentiment Aura API")
 
 # CORS middleware to allow frontend to communicate
+origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:5174",  # Vite sometimes uses this
+]
+
+# Add the configured frontend URL if different
+if Config.FRONTEND_URL and Config.FRONTEND_URL not in origins:
+    origins.append(Config.FRONTEND_URL)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],  # React dev servers
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -28,14 +84,17 @@ class SentimentResponse(BaseModel):
     sentiment: dict
     keywords: List[str]
 
-# Choose AI provider based on environment variable
-AI_PROVIDER = os.getenv("AI_PROVIDER", "openai").lower()
-
 def analyze_with_openai(text: str) -> dict:
     """Analyze sentiment using OpenAI"""
+    if not Config.OPENAI_API_KEY:
+        raise HTTPException(
+            status_code=500, 
+            detail="OpenAI API key not configured. Please set OPENAI_API_KEY or VITE_OPENAI_API_KEY in .env file"
+        )
+    
     from openai import OpenAI
     
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    client = OpenAI(api_key=Config.OPENAI_API_KEY)
     
     prompt = f"""Analyze the following text and return a JSON response with:
 1. sentiment: object with 'type' (positive/negative/neutral) and 'score' (0-1, where 1 is most intense)
@@ -74,9 +133,15 @@ Return ONLY valid JSON in this exact format:
 
 def analyze_with_anthropic(text: str) -> dict:
     """Analyze sentiment using Anthropic Claude"""
+    if not Config.ANTHROPIC_API_KEY:
+        raise HTTPException(
+            status_code=500, 
+            detail="Anthropic API key not configured. Please set ANTHROPIC_API_KEY or VITE_ANTHROPIC_API_KEY in .env file"
+        )
+    
     import anthropic
     
-    client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    client = anthropic.Anthropic(api_key=Config.ANTHROPIC_API_KEY)
     
     prompt = f"""Analyze the following text and return a JSON response with:
 1. sentiment: object with 'type' (positive/negative/neutral) and 'score' (0-1, where 1 is most intense)
@@ -101,7 +166,8 @@ Return ONLY valid JSON in this exact format:
         )
         
         result = message.content[0].text.strip()
-        print(f"Claude response: {result}")  # Debug logging
+        if Config.DEBUG:
+            print(f"Claude response: {result}")  # Debug logging
         
         # Remove markdown code blocks if present
         if result.startswith("```"):
@@ -118,9 +184,15 @@ Return ONLY valid JSON in this exact format:
 
 def analyze_with_google(text: str) -> dict:
     """Analyze sentiment using Google Gemini"""
+    if not Config.GOOGLE_API_KEY:
+        raise HTTPException(
+            status_code=500, 
+            detail="Google API key not configured. Please set GOOGLE_API_KEY or VITE_GOOGLE_API_KEY in .env file"
+        )
+    
     import google.generativeai as genai
     
-    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+    genai.configure(api_key=Config.GOOGLE_API_KEY)
     model = genai.GenerativeModel('gemini-pro')
     
     prompt = f"""Analyze the following text and return a JSON response with:
@@ -154,16 +226,46 @@ Return ONLY valid JSON in this exact format:
 async def root():
     return {
         "message": "Sentiment Aura API is running!",
-        "provider": AI_PROVIDER,
+        "provider": Config.AI_PROVIDER,
+        "environment": Config.NODE_ENV,
+        "debug": Config.DEBUG,
         "endpoints": {
-            "/process_text": "POST - Analyze text sentiment and extract keywords"
+            "/process_text": "POST - Analyze text sentiment and extract keywords",
+            "/api/health": "GET - Health check endpoint",
+            "/api/config": "GET - Get configuration status"
+        }
+    }
+
+@app.get("/api/health")
+async def health_check():
+    """Health check endpoint for frontend connection verification"""
+    return {
+        "status": "healthy",
+        "provider": Config.AI_PROVIDER,
+        "environment": Config.NODE_ENV
+    }
+
+@app.get("/api/config")
+async def get_config():
+    """Get configuration status (sanitized for security)"""
+    return {
+        "status": "connected",
+        "environment": Config.NODE_ENV,
+        "debug": Config.DEBUG,
+        "ai_provider": Config.AI_PROVIDER,
+        "providers_configured": {
+            "openai": bool(Config.OPENAI_API_KEY),
+            "anthropic": bool(Config.ANTHROPIC_API_KEY),
+            "google": bool(Config.GOOGLE_API_KEY)
         }
     }
 
 @app.post("/process_text", response_model=SentimentResponse)
+@app.post("/api/process_text", response_model=SentimentResponse)  # Alternative path for consistency
 async def process_text(input_data: TextInput):
     """
     Main endpoint to process text and return sentiment + keywords
+    Available at both /process_text and /api/process_text
     """
     text = input_data.text.strip()
     
@@ -179,14 +281,14 @@ async def process_text(input_data: TextInput):
     
     try:
         # Route to appropriate AI provider
-        if AI_PROVIDER == "openai":
+        if Config.AI_PROVIDER == "openai":
             result = analyze_with_openai(text)
-        elif AI_PROVIDER == "anthropic":
+        elif Config.AI_PROVIDER == "anthropic":
             result = analyze_with_anthropic(text)
-        elif AI_PROVIDER == "google":
+        elif Config.AI_PROVIDER == "google":
             result = analyze_with_google(text)
         else:
-            raise HTTPException(status_code=500, detail=f"Unknown AI provider: {AI_PROVIDER}")
+            raise HTTPException(status_code=500, detail=f"Unknown AI provider: {Config.AI_PROVIDER}")
         
         return SentimentResponse(
             sentiment=result.get("sentiment", {"type": "neutral", "score": 0.5}),
@@ -196,10 +298,26 @@ async def process_text(input_data: TextInput):
     except json.JSONDecodeError as e:
         print(f"JSON parsing error: {e}")
         raise HTTPException(status_code=500, detail="Failed to parse AI response")
+    except HTTPException:
+        # Re-raise HTTPExceptions as-is
+        raise
     except Exception as e:
         print(f"Unexpected error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    
+    # Use port from environment variable or default to 8000
+    port = Config.BACKEND_PORT
+    
+    print(f"\n🎉 Starting server on http://localhost:{port}")
+    print(f"📝 API documentation available at http://localhost:{port}/docs")
+    print(f"🔧 API Provider: {Config.AI_PROVIDER.upper()}\n")
+    
+    uvicorn.run(
+        app, 
+        host="0.0.0.0", 
+        port=port,
+        reload=Config.DEBUG  # Enable auto-reload in debug mode
+    )
