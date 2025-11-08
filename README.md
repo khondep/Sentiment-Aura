@@ -14,9 +14,9 @@ Live AI-powered sentiment analysis that transforms spoken words into a mesmerizi
 - **AI Sentiment Analysis**: Multiple AI provider support (Anthropic Claude, OpenAI, Google Gemini)
 - **Dynamic Perlin Noise Visualization**: 2000+ particles creating organic, flowing patterns
 - **Sentiment-Driven Colors**: 
-  - 🟢 Green/Yellow for positive sentiment
-  - 🔵 Blue/Purple for negative sentiment
-  - 🔷 Cyan for neutral sentiment
+  -  Blue for positive sentiment
+  -  Red for negative sentiment
+  -  Lavender for neutral sentiment
 - **Keyword Extraction**: AI-powered topic identification with smooth animations
 - **Robust Error Handling**: Automatic reconnection, request queuing, and graceful degradation
 
@@ -100,8 +100,8 @@ npm run dev
 2. Allow microphone permissions when prompted
 3. Start speaking naturally
 4. Watch as:
-   - Your words appear in the transcript (bottom-left)
-   - Keywords emerge with animations (top-right)
+   - Your words appear in the transcript (
+   - Keywords emerge with animations 
    - The particle field responds to your emotional tone
    - Colors and movement patterns shift with sentiment
 
