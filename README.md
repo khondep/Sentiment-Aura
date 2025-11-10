@@ -148,7 +148,7 @@ The Perlin noise visualization uses:
 ## 🔧 Configuration
 
 ### Environment Variables
-
+for 
 **Backend (.env)**:
 ```env
 AI_PROVIDER=anthropic|openai|google|textblob
@@ -156,7 +156,7 @@ ANTHROPIC_API_KEY=sk-ant-api03-...
 OPENAI_API_KEY=sk-...
 GOOGLE_API_KEY=...
 ```
-
+for 
 **Frontend (.env)**:
 ```env
 VITE_BACKEND_URL=http://localhost:8000
@@ -220,24 +220,6 @@ cd backend
 python main.py --production
 ```
 
-## 🚀 Deployment
-
-### Docker Deployment
-```bash
-docker-compose up --build
-```
-
-### Cloud Deployment (Render/Heroku)
-See `deployment.md` for platform-specific instructions.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
 
 
 ## 🙏 Acknowledgments
