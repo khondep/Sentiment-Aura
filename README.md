@@ -13,10 +13,14 @@ Live AI-powered sentiment analysis that transforms spoken words into a mesmerizi
 - **Real-time Speech-to-Text**: Powered by Deepgram's Nova-2 model for accurate transcription
 - **AI Sentiment Analysis**: Multiple AI provider support (Anthropic Claude, OpenAI, Google Gemini)
 - **Dynamic Perlin Noise Visualization**: 2000+ particles creating organic, flowing patterns
-- **Sentiment-Driven Colors**: 
-  -  Blue for positive sentiment
-  -  Red for negative sentiment
-  -  Lavender for neutral sentiment
+- **Sentiment-Driven Colors**:
+  
+  💙 Positive → Flowing blue tones
+
+	💜 Neutral → Calm lavender hues
+
+  ❤️ Negative → Intense red energy
+  
 - **Keyword Extraction**: AI-powered topic identification with smooth animations
 - **Robust Error Handling**: Automatic reconnection, request queuing, and graceful degradation
 
