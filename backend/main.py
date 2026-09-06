@@ -157,7 +157,7 @@ Return ONLY valid JSON in this exact format:
 
     try:
         message = client.messages.create(
-            model="claude-3-haiku-20240307",  # UPDATED: Using Haiku model
+            model="claude-haiku-4-5-20251001",
             max_tokens=200,
             temperature=0.3,
             messages=[
